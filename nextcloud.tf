@@ -66,10 +66,10 @@ resource "aws_instance" "nextcloud" {
   key_name             = aws_key_pair.n.key_name
   iam_instance_profile = aws_iam_instance_profile.nextcloud.name
 
-  user_data = <<EOF
-#!/bin/bash
-sudo snap install amazon-ssm-agent --classic
-EOF
+#  user_data = <<EOF
+##!/bin/bash
+#sudo snap install amazon-ssm-agent --classic
+#EOF
 
   tags = {
     Name = "nextcloud"
