@@ -1,0 +1,10 @@
+---
+
+- name: create paths
+  file:
+    path: /srv/nextcloud/{item}
+    state: directory
+  with_items:
+    - db
+    - data
+

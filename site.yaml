@@ -1,0 +1,10 @@
+---
+
+#- name: get environment
+#  ec2_metadata_facts:
+
+- name: setup nextcloud instance
+  hosts: nextcloud
+  roles:
+  - { role: nextcloud, become: yes }
+
