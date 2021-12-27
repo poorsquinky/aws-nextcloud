@@ -1,3 +1,4 @@
 .*.sw*
 .terraform*
-terraform.tfstate
+terraform.tfstate*
+.infracost
