@@ -6,6 +6,7 @@ default: terraform ansible
 ssh_setup:
 	chmod 600 privkey.pem
 	$(eval INSTANCE := $(shell terraform output instance_id | sed -e 's/"//g'))
+	timeout 300 bash -c -- 'until $(SSH) $(INSTANCE) "/bin/true"; do sleep 0.5; done'
 
 ansible: ssh_setup
 	$(SSH) $(INSTANCE) "which -a ansible || (sudo apt-get update && sudo apt-get -y install ansible)"
