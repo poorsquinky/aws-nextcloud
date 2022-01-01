@@ -1,0 +1,67 @@
+---
+
+# configure system
+
+- name: Configure hostname
+  copy:
+    content: "{{ hostname }}"
+    dest: /etc/hostname
+  notify: reboot
+# yep we reboot for this
+
+- name: hostname in hosts
+  lineinfile:
+    path: /etc/hosts
+    regexp: "^127.0.0.1"
+    line: "127.0.0.1	{{ hostname }} localhost"
+
+- name: Set timezone
+  file:
+    src: /usr/share/zoneinfo/America/Los_Angeles
+    dest: /etc/localtime
+    state: link
+  notify: reboot
+
+- name: Set keyboard
+  lineinfile:
+    path: /etc/default/keyboard
+    regexp: '^XKBLAYOUT='
+    line: 'XKBLAYOUT="us"'
+  notify: reboot
+
+- name: Shaboom!!!
+  apt:
+    update_cache: yes
+    upgrade: dist
+    force_apt_get: yes
+  retries: 2
+  delay: 10
+
+- name: install base apps
+  apt:
+    force_apt_get: yes
+    name:
+      - vim
+      - less
+      - tmux
+      - telnet
+      - ntp
+      - lsof
+
+- name: edit bashrc
+  blockinfile:
+    path: /etc/bash.bashrc
+    marker: "### {mark} ANSIBLE MANAGED BLOCK {{ item.name }} ###"
+    block: "{{ item.block }}"
+  with_items:
+    - name: prompt
+      block: |
+        if [[ $USER == 'root' ]]; then
+          PS1='${debian_chroot:+($debian_chroot)}\[\033[01;31m\]\u@\h\[\033[00m\]:\[\033[01;33m\]\w\[\033[00m\]# '
+        else
+          PS1='${debian_chroot:+($debian_chroot)}\[\033[01;36m\]\u@\h\[\033[00m\]:\[\033[01;32m\]\w\[\033[00m\]\$ '
+        fi
+    - name: lscolor
+      block: |
+        alias ls='ls --color=auto'
+

@@ -1,0 +1,11 @@
+
+[Unit]
+Description=Pi4 custom collector
+After=network.target
+
+[Service]
+ExecStart=/srv/rpi_custom_exporter/exporter.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

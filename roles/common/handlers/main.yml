@@ -1,0 +1,6 @@
+---
+
+- name: reboot
+  reboot:
+    reboot_timeout: 3600
+

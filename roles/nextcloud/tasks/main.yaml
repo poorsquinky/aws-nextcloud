@@ -8,3 +8,26 @@
     - db
     - data
 
+- name: install docker
+  apt:
+    force_apt_get: yes
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - docker.io
+      - docker-compose
+
+- name: Add users to docker group
+  user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  with_items:
+    - ubuntu
+
+- name: do some cleanup
+  command: "{{item}}"
+  with_items:
+    - "docker image prune -a --force"
+    - "docker system prune --volumes --force"
+

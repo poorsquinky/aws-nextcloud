@@ -3,6 +3,11 @@
 #- name: get environment
 #  ec2_metadata_facts:
 
+- name: apply common config
+  hosts: all
+  roles:
+    - { role: common, become: yes }
+
 - name: setup nextcloud instance
   hosts: nextcloud
   roles:
