@@ -3,6 +3,11 @@ SSH := ssh -o "StrictHostKeyChecking=no" -o UserKnownHostsFile=/dev/null -o Prox
 
 default: terraform ansible
 
+# I can't be relied on to remember the command to connect to the instance
+ssh:
+	$(eval INSTANCE := $(shell terraform output instance_id | sed -e 's/"//g'))
+	$(SSH) $(INSTANCE)
+
 ssh_setup:
 	chmod 600 privkey.pem
 	$(eval INSTANCE := $(shell terraform output instance_id | sed -e 's/"//g'))
