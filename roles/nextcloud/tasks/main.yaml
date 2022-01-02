@@ -4,9 +4,11 @@
   file:
     path: /srv/nextcloud/{item}
     state: directory
+    recurse: true
   with_items:
     - db
     - data
+    - nginx/conf.d
 
 - name: install docker
   apt:
@@ -16,6 +18,7 @@
     packages:
       - docker.io
       - docker-compose
+      - openssl
 
 - name: Add users to docker group
   user:
@@ -25,6 +28,56 @@
   with_items:
     - ubuntu
 
+# --
+
+- name: check for existing cert
+  stat:
+    path: /srv/nextcloud/letsencrypt/etc/live/cloud.stoopid.club
+  register: certpath
+
+- name: seed initial cert data
+  command: |
+    docker run -it --rm --name certbot \
+                -v "/srv/nextcloud/letsencrypt/etc:/etc/letsencrypt" \
+                -v "/srv/nextcloud/letsencrypt/var:/var/lib/letsencrypt" \
+                -p 80:80 \
+                certbot/certbot:arm64v8-latest certonly \
+                -m erik@erikstambaugh.com \
+                --agree-tos \
+                -n \
+                --standalone \
+                -d cloud.stoopid.club
+  when: certpath.stat.isdir is not defined
+
+#docker run -it --rm --name certbot \
+#            -v "/etc/letsencrypt:/etc/letsencrypt" \
+#            -v "/var/lib/letsencrypt:/var/lib/letsencrypt" \
+#            certbot/certbot:arm32v6-latest certonly \
+#            -m erik@erikstambaugh.com \
+#            --agree-tos \
+#            --standalone \
+#            --dry-run \
+#            -p 80:80 \
+#            -d cloud.stoopid.club
+##            certbot/certbot:arm32v6-latest certonly --help
+
+- name: pick up latest nginx ssl config
+  get_url:
+    url: https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf
+    dest: /srv/nextcloud/letsencrypt/etc/options-ssl-nginx.conf
+  register: certbotnginx
+
+- name: check for dhparams
+  stat:
+    path: /srv/nextcloud/letsencrypt/etc/ssl-dhparams.pem
+  register: dhparams
+
+- name: "create dhparams (this could take up to an hour)"
+  command: openssl dhparam -out ssl-dhparams.pem 4096
+  args:
+    chdir: /srv/nextcloud/letsencrypt/etc
+  when: dhparams.stat.exists == False
+
 # ---
 
 - name: nextcloud docker-compose
@@ -33,16 +86,22 @@
     dest: /srv/nextcloud/docker-compose.yaml
   register: dockercompose
 
+- name: nextcloud nginx.conf
+  copy:
+    src: files/nginx.conf
+    dest: /srv/nextcloud/nginx/nginx.conf
+  register: nginxconf
+
 - name: install nextcloud
   command: docker-compose up -d
   args:
     chdir: /srv/nextcloud
 
-- name: install nextcloud
+- name: restart nextcloud
   command: docker-compose restart
   args:
     chdir: /srv/nextcloud
-  when: dockercompose.changed
+  when: nginxconf.changed or certbotnginx.changed
 
 
 # ---

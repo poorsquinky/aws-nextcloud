@@ -58,6 +58,8 @@ resource "aws_instance" "nextcloud" {
 
   #  associate_public_ip_address = false
 
+  vpc_security_group_ids = [ module.nextcloud_sg.security_group_id ]
+
   user_data = <<EOF
 #!/bin/bash
 sudo snap install amazon-ssm-agent --classic
@@ -80,10 +82,18 @@ module "nextcloud_sg" {
   description = "Nextcloud SG"
   vpc_id      = module.vpc.vpc_id
 
+  egress_rules = [ "all-all" ]
+
   ingress_with_cidr_blocks = [
     {
       rule        = "http-80-tcp"
-      cidr_blocks = "${chomp(data.http.myip.body)}/32"
+      cidr_blocks = "0.0.0.0/0"
+#      cidr_blocks = "${chomp(data.http.myip.body)}/32"
+    },
+    {
+      rule        = "https-443-tcp"
+      cidr_blocks = "0.0.0.0/0"
+#      cidr_blocks = "${chomp(data.http.myip.body)}/32"
     },
   ]
 }

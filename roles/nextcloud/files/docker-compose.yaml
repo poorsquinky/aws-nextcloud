@@ -10,21 +10,20 @@ services:
   db:
     container_name: nextcloud_db
     image: mariadb
-    restart: always
+    restart: unless-stopped
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     volumes:
       - db:/var/lib/mysql
     environment:
-      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
-      - MYSQL_ROOT_PASSWORD=
-      - MYSQL_PASSWORD=
+      - MYSQL_ROOT_PASSWORD=s00p3rs3krit
+      - MYSQL_PASSWORD=s00p3rs3krit
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nextcloud
 
   app:
     container_name: nextcloud
     image: nextcloud
-    restart: always
+    restart: unless-stopped
     ports:
       - 8080:80
     links:
@@ -32,7 +31,37 @@ services:
     volumes:
       - nextcloud:/var/www/html
     environment:
-      - MYSQL_PASSWORD=
+      - MYSQL_PASSWORD=s00p3rs3krit
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nextcloud
       - MYSQL_HOST=db
+
+  web:
+    container_name: nginx
+    image: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    links:
+      - app
+    volumes:
+      - /srv/nextcloud/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /srv/nextcloud/nginx/conf.d:/etc/nginx/conf.d:ro
+#      - /srv/nextcloud/nginx/www:/usr/share/nginx/html:ro
+      - /srv/nextcloud/letsencrypt/etc:/etc/letsencrypt
+      - /srv/nextcloud/letsencrypt/www:/var/www/certbot
+    volumes_from:
+      - app
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+  certbot:
+    container_name: certbot
+    image: certbot/certbot:arm64v8-latest
+    restart: unless-stopped
+    volumes:
+      - /srv/nextcloud/letsencrypt/etc:/etc/letsencrypt
+      - /srv/nextcloud/letsencrypt/www:/var/www/certbot
+      - /srv/nextcloud/letsencrypt/var:/var/lib/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot --webroot-path=/var/www/certbot; sleep 12h & wait $${!}; done;'"
+
