@@ -137,10 +137,45 @@ data "aws_iam_policy" "nextcloud" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
 }
 
+## route53
+
+module "zone" {
+  source  = "terraform-aws-modules/route53/aws//modules/zones"
+  version = "~> 2.0"
+
+  zones = {
+    "cloud.stoopid.club" = {
+      comment = "cloud.stoopid.club"
+    }
+  }
+}
+
+
+module "records" {
+  source  = "terraform-aws-modules/route53/aws//modules/records"
+  version = "~> 2.0"
+
+  zone_name = keys(module.zone.route53_zone_zone_id)[0]
+
+  records = [
+    {
+      name    = ""
+      type    = "A"
+      ttl     = 600 # 10 minutes
+      records = [ aws_instance.nextcloud.public_ip ]
+    },
+  ]
+
+  depends_on = [module.zone]
+}
+
 output "instance_id" {
   value = aws_instance.nextcloud.id
 }
 output "public_ip" {
   value = aws_instance.nextcloud.public_ip
+}
+output "nameservers" {
+  value = module.zone.route53_zone_name_servers
 }
 
