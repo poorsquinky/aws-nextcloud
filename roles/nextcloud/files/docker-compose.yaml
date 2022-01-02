@@ -8,18 +8,21 @@ volumes:
 
 services:
   db:
+    container_name: nextcloud_db
     image: mariadb
     restart: always
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     volumes:
       - db:/var/lib/mysql
     environment:
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
       - MYSQL_ROOT_PASSWORD=
       - MYSQL_PASSWORD=
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nextcloud
 
   app:
+    container_name: nextcloud
     image: nextcloud
     restart: always
     ports:

@@ -25,6 +25,28 @@
   with_items:
     - ubuntu
 
+# ---
+
+- name: nextcloud docker-compose
+  copy:
+    src: files/docker-compose.yaml
+    dest: /srv/nextcloud/docker-compose.yaml
+  register: dockercompose
+
+- name: install nextcloud
+  command: docker-compose up -d
+  args:
+    chdir: /srv/nextcloud
+
+- name: install nextcloud
+  command: docker-compose restart
+  args:
+    chdir: /srv/nextcloud
+  when: dockercompose.changed
+
+
+# ---
+
 - name: do some cleanup
   command: "{{item}}"
   with_items:

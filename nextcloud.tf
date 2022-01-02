@@ -5,11 +5,6 @@ provider "aws" {
 
 resource "random_pet" "name" {}
 
-#resource "aws_s3_bucket" "bucket" {
-#  bucket = "nextcloud-${random_pet.name.id}"
-#  acl    = "private"
-#}
-
 # https://registry.terraform.io/modules/terraform-aws-modules/s3-bucket/aws/latest
 module "s3_bucket" {
   source = "terraform-aws-modules/s3-bucket/aws"
@@ -37,11 +32,6 @@ module "vpc" {
 
   enable_nat_gateway = false
   enable_vpn_gateway = false
-
-#  tags = {
-#    Terraform = "true"
-#    Environment = "dev"
-#  }
 }
 
 resource "tls_private_key" "n" {
@@ -66,20 +56,42 @@ resource "aws_instance" "nextcloud" {
   key_name             = aws_key_pair.n.key_name
   iam_instance_profile = aws_iam_instance_profile.nextcloud.name
 
-#  user_data = <<EOF
-##!/bin/bash
-#sudo snap install amazon-ssm-agent --classic
-#EOF
+  #  associate_public_ip_address = false
+
+  user_data = <<EOF
+#!/bin/bash
+sudo snap install amazon-ssm-agent --classic
+EOF
 
   tags = {
     Name = "nextcloud"
   }
 }
 
-#resource "aws_eip" "nextcloud" {
-#  vpc      = true
-#  instance = aws_instance.nextcloud.id
-#}
+# get my public IP address.  For now, it's the only thing that should be able to access.
+data "http" "myip" {
+  url = "http://ipv4.icanhazip.com"
+}
+
+module "nextcloud_sg" {
+  source = "terraform-aws-modules/security-group/aws"
+
+  name        = "nextcloud"
+  description = "Nextcloud SG"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_with_cidr_blocks = [
+    {
+      rule        = "http-80-tcp"
+      cidr_blocks = "${chomp(data.http.myip.body)}/32"
+    },
+  ]
+}
+
+resource "aws_eip" "nextcloud" {
+  vpc      = true
+  instance = aws_instance.nextcloud.id
+}
 
 resource "aws_iam_instance_profile" "nextcloud" {
   name = "nextcloud"
