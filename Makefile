@@ -4,23 +4,26 @@ SSH := ssh -o "StrictHostKeyChecking=no" -o UserKnownHostsFile=/dev/null -o Prox
 default: terraform ansible
 
 # I can't be relied on to remember the command to connect to the instance
-ssh:
-	$(eval INSTANCE := $(shell terraform output instance_id | sed -e 's/"//g'))
+ssh: setup
 	$(SSH) $(INSTANCE)
 
-ssh_setup:
+setup:
+	$(eval INSTANCE  := $(shell terraform output instance_id | sed -e 's/"//g'))
+	$(eval PUBLIC_IP := $(shell terraform output public_ip   | sed -e 's/"//g'))
 	chmod 600 privkey.pem
-	$(eval INSTANCE := $(shell terraform output instance_id | sed -e 's/"//g'))
-	timeout 300 bash -c -- 'until $(SSH) $(INSTANCE) "/bin/true"; do sleep 0.5; done'
+	timeout --foreground 300 bash -c -- 'until $(SSH) $(INSTANCE) "/bin/true"; do sleep 0.5; done'
 
-ansible: ssh_setup
+ansible: setup
 	$(SSH) $(INSTANCE) "which -a ansible || (sudo apt-get update && sudo apt-get -y install ansible)"
-	sed -e 's/{{INSTANCE}}/$(INSTANCE)/' inventory.tmpl.ini > inventory.ini
+	sed \
+		-e 's/{{INSTANCE}}/$(INSTANCE)/' \
+		-e 's/{{PUBLIC_IP}}/$(PUBLIC_IP)/' \
+		inventory.tmpl.ini > inventory.ini
 	ansible-playbook -i inventory.ini --private-key privkey.pem -l nextcloud site.yaml
 
 terraform:
 	terraform init
 	terraform apply
 
-.PHONY: ssh_setup ansible terraform
+.PHONY: setup ansible terraform
 

@@ -140,4 +140,7 @@ data "aws_iam_policy" "nextcloud" {
 output "instance_id" {
   value = aws_instance.nextcloud.id
 }
+output "public_ip" {
+  value = aws_instance.nextcloud.public_ip
+}
 
