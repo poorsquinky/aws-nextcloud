@@ -1,0 +1,19 @@
+---
+
+- name: create paths
+  file:
+    path: /srv/monitoring-client
+    state: directory
+    recurse: true
+
+- name: monitoring docker-compose
+  copy:
+    src: files/docker-compose.yaml
+    dest: /srv/monitoring-client/docker-compose.yaml
+  register: nginxconf
+
+- name: launch monitoring client
+  command: docker-compose up -d
+  args:
+    chdir: /srv/monitoring-client
+

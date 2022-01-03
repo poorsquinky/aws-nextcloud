@@ -88,12 +88,17 @@ module "nextcloud_sg" {
     {
       rule        = "http-80-tcp"
       cidr_blocks = "0.0.0.0/0"
-#      cidr_blocks = "${chomp(data.http.myip.body)}/32"
     },
     {
       rule        = "https-443-tcp"
       cidr_blocks = "0.0.0.0/0"
-#      cidr_blocks = "${chomp(data.http.myip.body)}/32"
+    },
+    {
+      from_port   = 9100
+      to_port     = 9100
+      protocol    = "tcp"
+      description = "Prometheus node-exporter"
+      cidr_blocks = "${chomp(data.http.myip.body)}/32"
     },
   ]
 }
