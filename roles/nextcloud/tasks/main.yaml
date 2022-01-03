@@ -39,18 +39,6 @@
                 -d cloud.stoopid.club
   when: certpath.stat.isdir is not defined
 
-#docker run -it --rm --name certbot \
-#            -v "/etc/letsencrypt:/etc/letsencrypt" \
-#            -v "/var/lib/letsencrypt:/var/lib/letsencrypt" \
-#            certbot/certbot:arm32v6-latest certonly \
-#            -m erik@erikstambaugh.com \
-#            --agree-tos \
-#            --standalone \
-#            --dry-run \
-#            -p 80:80 \
-#            -d cloud.stoopid.club
-##            certbot/certbot:arm32v6-latest certonly --help
-
 - name: pick up latest nginx ssl config
   get_url:
     url: https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf
@@ -69,28 +57,6 @@
   when: dhparams.stat.exists == False
 
 # ---
-
-#- name: adminpass file
-#  copy:
-#    src: files/adminpass
-#    dest: /tmp/adminpass
-#
-#- name: create docker secrets
-#  shell: docker secret create nextcloud_admin_password - < /tmp/adminpass
-#
-#- name: create other docker secrets
-#  shell: "echo '{item.value}' | docker secret create {item.key} -"
-#  with_items:
-#    - key: nextcloud_admin_user
-#      value: b4rry
-#    - key: mysql_user
-#      value: nextcloud
-#    - key: mysql_host
-#      value: db
-#    - key: mysql_db
-#      value: nextcloud
-#    - key: mysql_root_password
-#      value: s00p3rs3krit
 
 - name: nextcloud docker-compose
   template:
