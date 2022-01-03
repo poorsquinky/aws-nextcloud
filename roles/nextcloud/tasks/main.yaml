@@ -10,14 +10,12 @@
     - data
     - nginx/conf.d
 
-- name: install docker
+- name: install dependencies
   apt:
     force_apt_get: yes
     name: "{{ packages }}"
   vars:
     packages:
-      - docker.io
-      - docker-compose
       - openssl
 
 - name: Add users to docker group

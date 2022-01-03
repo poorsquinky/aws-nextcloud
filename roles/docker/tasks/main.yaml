@@ -1,0 +1,20 @@
+---
+
+- name: install docker
+  apt:
+    force_apt_get: yes
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - docker.io
+      - docker-compose
+
+- name: Add users to docker group
+  user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  with_items:
+    - ubuntu
+
+

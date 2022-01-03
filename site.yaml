@@ -11,5 +11,6 @@
 - name: setup nextcloud instance
   hosts: nextcloud
   roles:
+  - { role: docker, become: yes }
   - { role: nextcloud, become: yes }
 
