@@ -80,10 +80,40 @@
 
 # ---
 
+#- name: adminpass file
+#  copy:
+#    src: files/adminpass
+#    dest: /tmp/adminpass
+#
+#- name: create docker secrets
+#  shell: docker secret create nextcloud_admin_password - < /tmp/adminpass
+#
+#- name: create other docker secrets
+#  shell: "echo '{item.value}' | docker secret create {item.key} -"
+#  with_items:
+#    - key: nextcloud_admin_user
+#      value: b4rry
+#    - key: mysql_user
+#      value: nextcloud
+#    - key: mysql_host
+#      value: db
+#    - key: mysql_db
+#      value: nextcloud
+#    - key: mysql_root_password
+#      value: s00p3rs3krit
+
 - name: nextcloud docker-compose
-  copy:
-    src: files/docker-compose.yaml
+  template:
+    src: templates/docker-compose.yaml
     dest: /srv/nextcloud/docker-compose.yaml
+  vars:
+    nextcloud_admin_password: "{{ lookup('file', 'files/adminpass') }}"
+    nextcloud_admin_user: b4rry
+    mysql_host: nextcloud_db
+    mysql_db: nextcloud
+    mysql_user: nextcloud
+    mysql_password: s00p3rs3krit
+    mysql_root_password: s00p3rs3krit
   register: dockercompose
 
 - name: nextcloud nginx.conf

@@ -179,6 +179,23 @@ module "records" {
   depends_on = [module.zone]
 }
 
+## generate admin password
+
+resource "random_password" "admin" {
+  length  = 20
+  special = true
+  lower   = true
+  upper   = true
+  number  = true
+}
+
+resource "local_file" "adminpass" {
+  content  = random_password.admin.result
+  filename = "roles/nextcloud/files/adminpass"
+}
+
+## outputs
+
 output "instance_id" {
   value = aws_instance.nextcloud.id
 }
@@ -188,4 +205,5 @@ output "public_ip" {
 output "nameservers" {
   value = module.zone.route53_zone_name_servers
 }
+
 

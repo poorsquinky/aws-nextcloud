@@ -11,9 +11,9 @@ setup:
 	$(eval INSTANCE  := $(shell terraform output instance_id | sed -e 's/"//g'))
 	$(eval PUBLIC_IP := $(shell terraform output public_ip   | sed -e 's/"//g'))
 	chmod 600 privkey.pem
-	timeout --foreground 300 bash -c -- 'until $(SSH) $(INSTANCE) "/bin/true"; do sleep 0.5; done'
 
 ansible: setup
+	timeout --foreground 300 bash -c -- 'until $(SSH) $(INSTANCE) "/bin/true"; do sleep 0.5; done'
 	$(SSH) $(INSTANCE) "which -a ansible || (sudo apt-get update && sudo apt-get -y install ansible)"
 	sed \
 		-e 's/{{INSTANCE}}/$(INSTANCE)/' \
