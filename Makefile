@@ -10,6 +10,7 @@ ssh: setup
 setup:
 	$(eval INSTANCE  := $(shell terraform output instance_id | sed -e 's/"//g'))
 	$(eval PUBLIC_IP := $(shell terraform output public_ip   | sed -e 's/"//g'))
+	$(eval BUCKET    := $(shell terraform output bucket      | sed -e 's/"//g'))
 	chmod 600 privkey.pem
 
 ansible: setup
@@ -18,6 +19,7 @@ ansible: setup
 	sed \
 		-e 's/{{INSTANCE}}/$(INSTANCE)/' \
 		-e 's/{{PUBLIC_IP}}/$(PUBLIC_IP)/' \
+		-e 's/{{BUCKET}}/$(BUCKET)/' \
 		inventory.tmpl.ini > inventory.ini
 	ansible-playbook -i inventory.ini --private-key privkey.pem -l nextcloud site.yaml
 

@@ -127,12 +127,32 @@
   args:
     chdir: /srv/nextcloud
 
-- name: restart nextcloud
+- name: restart via docker-compose
   command: docker-compose restart
   args:
     chdir: /srv/nextcloud
   when: nginxconf.changed or certbotnginx.changed
 
+# ---
+
+- name: edit config.php
+  lineinfile:
+    path: /srv/nextcloud/www/config/config.php
+    insertbefore: '^\);'
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: "  'overwrite.cli.url' => .*"
+      line: "  'overwrite.cli.url' => 'https://cloud.stoopid.club',"
+    - regexp: "  'overwriteprotocol' => .*"
+      line: "  'overwriteprotocol' => 'https',"
+    - regexp: "  'overwritehost' => .*"
+      line: "  'overwritehost' => 'cloud.stoopid.club',"
+  register: configphp
+
+- name: restart nextcloud
+  command: docker restart nextcloud
+  when: configphp.changed
 
 # ---
 

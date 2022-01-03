@@ -29,6 +29,8 @@ services:
       - "MYSQL_PASSWORD={{mysql_password}}"
       - "MYSQL_USER={{mysql_user}}"
       - "MYSQL_HOST={{mysql_host}}"
+      - "OBJECTSTORE_S3_BUCKET={{bucket}}"
+      - "OBJECTSTORE_S3_REGION=us-west-2"
       - "TRUSTED_PROXIES=172.0.0.0/8"
       - "NEXTCLOUD_TRUSTED_DOMAINS=cloud.stoopid.club nextcloud"
       - "NEXTCLOUD_UPDATE=1"

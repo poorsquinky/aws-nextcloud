@@ -205,5 +205,8 @@ output "public_ip" {
 output "nameservers" {
   value = module.zone.route53_zone_name_servers
 }
+output "bucket" {
+  value = module.s3_bucket.s3_bucket_id
+}
 
 
