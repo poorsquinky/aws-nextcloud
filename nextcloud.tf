@@ -16,6 +16,16 @@ module "s3_bucket" {
     enabled = false
   }
 
+  server_side_encryption_configuration = {
+    rule = {
+      apply_server_side_encryption_by_default = {
+        sse_algorithm = "AES256"
+      }
+
+      bucket_key_enabled = true
+    }
+  }
+
 }
 
 # https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
