@@ -223,5 +223,8 @@ output "nameservers" {
 output "bucket" {
   value = module.s3_bucket.s3_bucket_id
 }
+output "myip" {
+  value = "${chomp(data.http.myip.body)}"
+}
 
 

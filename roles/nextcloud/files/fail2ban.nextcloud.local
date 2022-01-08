@@ -1,0 +1,10 @@
+[nextcloud]
+backend = auto
+enabled = true
+port = 0:65535
+protocol = tcp
+filter = nextcloud
+maxretry = 3
+bantime = 1w
+findtime = 43200
+logpath = /srv/nextcloud/www/data/nextcloud.log

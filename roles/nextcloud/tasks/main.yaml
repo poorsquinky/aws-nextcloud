@@ -17,6 +17,7 @@
   vars:
     packages:
       - openssl
+      - fail2ban
 
 # --
 
@@ -56,7 +57,7 @@
     chdir: /srv/nextcloud/letsencrypt/etc
   when: dhparams.stat.exists == False
 
-# ---
+## docker configuration
 
 - name: nextcloud docker-compose
   template:
@@ -89,7 +90,8 @@
     chdir: /srv/nextcloud
   when: nginxconf.changed or certbotnginx.changed
 
-# ---
+
+## nextcloud config.php edits
 
 - name: edit config.php
   lineinfile:
@@ -109,6 +111,33 @@
 - name: restart nextcloud
   command: docker restart nextcloud
   when: configphp.changed
+
+
+## Set up Fail2ban
+
+- name: fail2ban filter configuration
+  copy:
+    src: files/fail2ban.nextcloud.conf
+    dest: /etc/fail2ban/filter.d/nextcloud.conf
+  register: fail2filter
+
+- name: fail2ban jail configuration
+  template:
+    src: templates/fail2ban.jail.local
+    dest: /etc/fail2ban/jail.d/jail.local
+  register: fail2jail
+
+- name: nextcloud jail configuration
+  copy:
+    src: files/fail2ban.nextcloud.local
+    dest: /etc/fail2ban/jail.d/nextcloud.local
+  register: fail2nc
+
+- name: restart fail2ban
+  service:
+    name: fail2ban
+    state: restarted
+  when: fail2filter.changed or fail2jail.changed or fail2nc.changed
 
 # ---
 

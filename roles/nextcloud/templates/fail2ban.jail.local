@@ -1,0 +1,10 @@
+[DEFAULT]
+
+# include our IP addresses in the ignore list
+ignoreip = 127.0.0.1/8 172.16.0.0/16 {{public_ip}}/32 {{myip}}/32
+
+# suffer not a rando to access
+bantime  = 1w
+
+maxretry = 5
+
