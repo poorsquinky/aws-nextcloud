@@ -61,7 +61,7 @@ resource "local_file" "aws_key" {
 
 resource "aws_instance" "nextcloud" {
   ami                  = "ami-078278691222aee06"
-  instance_type        = "t4g.micro"
+  instance_type        = "t4g.small"
   subnet_id            = module.vpc.public_subnets.0
   key_name             = aws_key_pair.n.key_name
   iam_instance_profile = aws_iam_instance_profile.nextcloud.name
